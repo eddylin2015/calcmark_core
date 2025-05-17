@@ -145,7 +145,6 @@ class iMarkCalC_Act {
          * logby.eddylin.20210704
          ***************************************/
         if (avgc > 5 && wrgMarks > 0) avgc = 5;
-        //console.log(`${wrgMarks},${avgc0}`);
         return iMarkCalC_Act.ConductOfNo(avgc);
     }
 
@@ -183,8 +182,9 @@ class iMarkCalC_Act {
         }
         return [res, EvalAddHonorInt];
     }
-
 }
+
+
 class TMarkCalC_Act extends iMarkCalC_Act {
     constructor() {
         super();
@@ -296,12 +296,11 @@ function MarkIterateCalc(ds, ng_dict, iCalc = null, cno = "S") {
 *    function View_Cross_Data(ds, fieldname, row_list, cols_dict_list, cols_subitems=1 , ng_dict={}, agg_action=()=>{}) 
 */
 function View_Cross_Data(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_subitems = 1, ng_dict = {}, agg_action) {
-    let cross_ = []
     let crs = []
     let cols_len = crs_dt.length * cols_subitems;
     let crs_dict = {};
     crs_dt.forEach((r, i) => { crs_dict[r.course_d_id] = i; crs.push(r.courseName) })
-    std_dt.forEach(elm => { cross_.push(Array.from({ length: cols_len }, (_, i) => null)) })
+    let cross_ = Array(std_dt.length).fill(Array(cols_len).fill(null))
     std_dt.forEach((elm, i) => {
         ds[i][tablename].forEach((mk, mi) => {
             let mk_t = agg_action(mk)
@@ -312,6 +311,18 @@ function View_Cross_Data(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_su
     return [cross_, std_dt, crs];
 }
 
+
+/*
+*    let crs = []
+*    let cols_len = crs_dt.length * cols_subitems;
+*    let crs_dict = {};
+*    crs_dt.forEach((r, i) => { crs_dict[r.course_d_id] = i; crs.push(r.courseName) })
+*
+*    agg_action=()=>{}
+*
+*    function View_Cross_Data(ds, fieldname, row_list, cols_dict_list, cols_subitems=1 , ng_dict={}, agg_action=()=>{}) 
+*    let m_ = Math.round((mk.total2 * 0.3 + mk.total1 * 0.3 - 36) * 6 / 4);
+*/
 function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_subitems = 1, ng_dict = {}, agg_field = ['扣減'], agg_action) {
     let crs = []
     let cols_len = crs_dt.length * cols_subitems;
@@ -329,12 +340,10 @@ function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], co
             ign_cnt++;
         }
     })
-    let cross_ = []
-    std_dt.forEach(elm => { cross_.push(Array.from({ length: cols_len + agg_len }, (_, i) => null)) })
+    let cross_ = Array(std_dt.length).fill(Array(cols_len+agg_len).fill(null))
     std_dt.forEach((elm, i) => {
         ds[i]["mk"].forEach((mk, mi) => {
             if (mk.course_d_id in crs_dict) {
-                //let m_ = Math.round((mk.total2 * 0.3 + mk.total1 * 0.3 - 36) * 6 / 4);
                 let m_ = agg_action(mk)
                 cross_[i][crs_dict[mk.course_d_id]] = m_[0];
                 let ng_idx = agg_field.indexOf("扣減")
@@ -354,8 +363,8 @@ function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], co
     });
     crs = [...crs, ...Array.from({ length: ign_cnt + 1 }, (_, i) => "")]
     return [cross_, std_dt, crs];
-
 }
+
 
 function MartixWithColuName(cross_, std, crs,agg_field=[]){
     let sht=[];
@@ -370,9 +379,10 @@ function MartixWithColuName(cross_, std, crs,agg_field=[]){
     })
     return sht;
 }
-//
-// param_postData=querystring.stringify(param_postData_obj)
-//
+
+/*
+* param_postData=querystring.stringify(param_postData_obj)
+*/
 function WReq_pyapi(param_path, response,cb=null, method = "GET", param_postData = { str: "ABC" }) {
     if (method == "GET") {
         http.get(
@@ -396,7 +406,7 @@ function WReq_pyapi(param_path, response,cb=null, method = "GET", param_postData
         let options = {
             hostname: "127.0.0.1", port: 85,
             path: param_path, method: 'POST',
-            //headers: {'Cookie': "sidkey","X-Authorization": "sidkey", 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(param_postData) }
+            // 'Content-Length': Buffer.byteLength(param_postData) }
             headers: { 'Cookie': "sidkey", "X-Authorization": "sidkey", 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(param_postData) }
         };
         let req = http.request(options, (res) => {
