@@ -1,7 +1,6 @@
 const http = require('http');
 const querystring = require('querystring');
-const {iMarkCalC_Act,TMarkCalC_Act,MarkIterateCalc,View_Cross_Data,View_Cross_TotalData}=require("./calcmark_core")
-const {HttpGet_pyapi,HttpGet_pyapi_cb,Uploadfile,Dowanloadfile}=require("./calcmark_pyapi")
+const {iMarkCalC_Act,TMarkCalC_Act,MarkIterateCalc,View_Cross_Data,View_Cross_TotalData,WReq_pyapi}=require("./calcmark_core")
 var fs = require('fs');
 var path = require('path');
 
@@ -56,7 +55,7 @@ function cd_adpt_Update(ds, tablename = "cd") {
  * Gen Summary data from Mark Tables. Download data from the specified URL.
  * 
  * @async
- * @function GenSummaryTbl_cb
+ * @function GenSummaryTbl
  * @param {string} classno - class no.
  * @param {string} term - term 1,2,3 .
  * @param {function} cb - call back.
@@ -64,15 +63,10 @@ function cd_adpt_Update(ds, tablename = "cd") {
  * @param {boolean} updateflag - updateflag.
  * @return {list} [std_dt, crs_dt, ng_dict, ds];
  */
-async function GenSummaryTbl_cb(classno, term, cb, calcflag = true, updateflag = false) {
+async function GenSummaryTbl(classno, term, cb=null, calcflag = true, updateflag = false) {
     let data = await GetMrkTblSet(classno, new TMarkCalC_Act(), calcflag, updateflag)
-    cb(data);
-}
-
-async function GenSummaryTbl(classno, term, calcflag = true, updateflag = false) {
-    let data = await GetMrkTblSet(classno, new TMarkCalC_Act(), calcflag, updateflag)
-    if (term == 5) return View_cross_tbl_SecTerm(...data);
-    return View_cross_tbl(...data);
+    if(cb) return cb(data);
+    return View_Cross_Data(...data);
 }
 
 async function GetMrkTblSet(classno, iCalc = null, calcflag = true, updateflag = false) {
@@ -120,12 +114,9 @@ async function GetMrkTblSet(classno, iCalc = null, calcflag = true, updateflag =
 
 //////////////////////////
 module.exports = {
-    HttpGet_pyapi: HttpGet_pyapi,
-    HttpGet_pyapi_cb: HttpGet_pyapi_cb,
-    Uploadfile: Uploadfile,
-    Dowanloadfile: Dowanloadfile,
+    HttpGet_pyapi: WReq_pyapi,
+    HttpGet_pyapi_cb: WReq_pyapi,
     GenSummaryTbl: GenSummaryTbl,
-    GenSummaryTbl_cb:GenSummaryTbl_cb,
     View_Cross_TotalData:View_Cross_TotalData,
     View_Cross_Data:View_Cross_Data,
 

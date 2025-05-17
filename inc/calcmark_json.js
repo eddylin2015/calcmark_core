@@ -50,12 +50,6 @@ function cd_adpt_Update(ds, tablename = "cd") {
     }
 }
 
-async function GenSummaryTbl(classno, term, calcflag = true, updateflag = false) {
-    let data = await GetMrkTblSet(classno, new cm_core.TMarkCalC_Act(), true, true)
-    if (term == 5) return View_cross_tbl_SecTerm(...data);
-    return View_cross_tbl(...data);
-}
-
 async function GetMrkTblSet(classno, iCalc = null, calcflag = true, updateflag = false) {
     let [std_dt, crs_dt, ng_dict, ds] = JSON.parse(fs.readFileSync('./secert/data_.txt')); //;
     if (calcflag) {
@@ -70,22 +64,18 @@ async function GetMrkTblSet(classno, iCalc = null, calcflag = true, updateflag =
 
 //////////////////////////
 module.exports = {
-    HttpGet_pyapi: HttpGet_pyapi,
-    Uploadfile: Uploadfile,
-    Dowanloadfile: Dowanloadfile,
-    GenSummaryTbl: GenSummaryTbl,
+    GetMrkTblSet: GetMrkTblSet,
 }
 
 
 
 if (require.main === module) {
-    //GenSummaryTbl('SC1E', 1);
     (async function(){
         let [std_dt, crs_dt, ng_dict, ds]=await GetMrkTblSet('SC1E',new cm_core.iMarkCalC_Act(),true,false)
         let res={} //TotalMarks TestExam NegaAcadCred
         {
           let [cross_, std, crs]=cm_core.View_Cross_Data(ds,"mk",std_dt,crs_dt,3,ng_dict,(mk)=>[mk.t2,mk.e2,mk.total2]);
-          res["TestExam"]=cross_
+          res["TestExam"]=cm_core.MartixWithColuName(cross_,std,crs,[])
         }
         {
            let [cross_, std, crs]=cm_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減","mark2","ran2","voca_cult_avg","voca_prof_avg","conduct2","WrgMarks2","honor2"],
@@ -93,14 +83,14 @@ if (require.main === module) {
                return [mk.total2,0]
                 }
            );
-           res["TotalMarks"]=cross_
+           res["TotalMarks"]=cm_core.MartixWithColuName(cross_,std,crs,["扣減","mark2","ran2","voca_cult_avg","voca_prof_avg","conduct2","WrgMarks2","honor2"])
         }
         {
           let [cross_, std, crs]=cm_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減"],(mk)=>{
             let m_=Math.round((mk.total2 * 0.3 + mk.total1 * 0.3 - 36) * 6 / 4)
             return [m_,m_]
           });
-          res["NegaAcadCred"]=cross_
+          res["NegaAcadCred"]=cm_core.MartixWithColuName(cross_,std,crs,["扣減"])
         }
         Object.keys(res).forEach(k => {
             console.log(k)

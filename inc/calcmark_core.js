@@ -1,4 +1,5 @@
 
+const http = require('http');
 /*
 * iMarkCalc_Act and SimpleCalc
 */
@@ -311,7 +312,7 @@ function View_Cross_Data(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_su
     return [cross_, std_dt, crs];
 }
 
-function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_subitems = 1, ng_dict = {}, agg_field = ['扣減'], agg_action, cd_agg_action = null) {
+function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_subitems = 1, ng_dict = {}, agg_field = ['扣減'], agg_action) {
     let crs = []
     let cols_len = crs_dt.length * cols_subitems;
     let agg_len = agg_field.length;
@@ -356,10 +357,70 @@ function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], co
 
 }
 
+function MartixWithColuName(cross_, std, crs,agg_field=[]){
+    let sht=[];
+    let header=['std','seat','name']; 
+    crs.forEach(Ele=>header.push(Ele));
+    agg_field.forEach(Ele=>header.push(Ele));
+    sht.push(header);
+    cross_.forEach((row,i)=>{
+        let r_=[std[i].stud_ref,std[i].curr_seat,std[i].c_name]
+        row.forEach(elm=>r_.push(elm))
+        sht.push(r_)
+    })
+    return sht;
+}
+//
+// param_postData=querystring.stringify(param_postData_obj)
+//
+function WReq_pyapi(param_path, response,cb=null, method = "GET", param_postData = { str: "ABC" }) {
+    if (method == "GET") {
+        http.get(
+            {
+                hostname: "127.0.0.1", port: 85,
+                path: param_path, method: 'GET',
+                headers: { 'Cookie': "sidkey", "X-Authorization": "sidkey" }
+            },
+            (res) => {
+                if(cb){
+                   cb(res)
+                }else{
+                   response.set(res.headers);
+                   res.pipe(response)
+                }
+            }).on('error', (e) => {
+                console.log(e);
+            });
+    } else if (method == "POST") {
+        param_postData = JSON.stringify(param_postData)
+        let options = {
+            hostname: "127.0.0.1", port: 85,
+            path: param_path, method: 'POST',
+            //headers: {'Cookie': "sidkey","X-Authorization": "sidkey", 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(param_postData) }
+            headers: { 'Cookie': "sidkey", "X-Authorization": "sidkey", 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(param_postData) }
+        };
+        let req = http.request(options, (res) => {
+                if(cb){
+                   cb(res)
+                }else{
+                   response.set(res.headers);
+                   res.pipe(response)
+                }
+        });
+        req.on('error', (e) => {
+            console.error(`problem with request: ${e.message}`);
+        });
+        req.write(param_postData);
+        req.end();
+    }
+}
+
 module.exports = {
     iMarkCalC_Act: iMarkCalC_Act,
     TMarkCalC_Act: TMarkCalC_Act,
     MarkIterateCalc: MarkIterateCalc,
     View_Cross_Data: View_Cross_Data,
     View_Cross_TotalData: View_Cross_TotalData,
+    MartixWithColuName:MartixWithColuName,
+    WReq_pyapi:WReq_pyapi
 }
