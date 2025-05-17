@@ -84,8 +84,30 @@ if (require.main === module) {
         let [std_dt, crs_dt, ng_dict, ds]=await GetMrkTblSet('SC1E',new iMarkCalC_Act(),true,false)
         let [cross_, std_dt_, crs]=calcmak_core.View_cross_tbl_Term(std_dt,crs_dt,ng_dict,ds,1)
         console.table(cross_)
-        let [cross_TestExam, _, __]=calcmak_core.View_cross_tbl_TermTestExam(std_dt,crs_dt,ng_dict,ds,1)
-        console.table(cross_TestExam)
+        let res={} //TotalMarks TestExam NegaAacaCred
+        //let [cross_TestExam, _, __]=calcmak_core.View_cross_tbl_TermTestExam(std_dt,crs_dt,ng_dict,ds,1)
+        {
+          let [cross_TestExam, _, __]=calcmak_core.View_Cross_Data(ds,"mk",std_dt,crs_dt,3,ng_dict,(mk)=>[mk.t2,mk.e2,mk.total2]);
+          res["TestExam"]=cross_TestExam
+        }
+        {
+          let [cross_TestExam, _, __]=calcmak_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減","mark2","ran2","voca_cult_avg","voca_prof_avg","conduct2","WrgMarks2","honor2"],
+            (mk)=>{
+               return [mk.total2,0]
+                }
+           );
+           res["TotalMarks"]=cross_TestExam
+        }
+        {
+            
+          let [cross_TestExam, _, __]=calcmak_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減"],(mk)=>{
+            let m_=Math.round((mk.total2 * 0.3 + mk.total1 * 0.3 - 36) * 6 / 4)
+            return [m_,m_]
+          });
+          res["NegaAacaCred"]=cross_TestExam
+        }
+        for(let k in res)
+            console.table(res[k])
     })()
 
 }
