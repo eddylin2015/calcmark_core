@@ -1,7 +1,7 @@
 const http = require('http');
 const querystring = require('querystring');
-const { iMarkCalC_Act, TMarkCalC_Act, MarkIterateCalc,View_cross_tbl,View_cross_tbl_SecTerm } = require("./calcmark_core")
-const calcmak_core = require("./calcmark_core")
+const { iMarkCalC_Act, TMarkCalC_Act, MarkIterateCalc } = require("./calcmark_core")
+const cm_core = require("./calcmark_core")
 const { HttpGet_pyapi, Uploadfile, Dowanloadfile } = require("./calcmark_pyapi")
 var fs = require('fs');
 var path = require('path');
@@ -25,7 +25,7 @@ function mk_adpt_Update(ds, tablename = "mk") {
         for (let r of mk) {
             let data = { total1: 0, total2: 0, total3: 0, total: 0, VOCA_MUE: 0, sub_c_p: 0, P_X: 0, eog: 0 }
             for (let k in data) data[k] = r[k];
-            //getModel().DataReaderQuery(sql, [data, r.stud_c_id], (err, results) => {/*console.log(err,results)*/ })
+            //getModel().DataReaderQuery(sql, [data, r.stud_c_id], (err, results) => {/* */ })
         }
     }
 }
@@ -45,13 +45,13 @@ function cd_adpt_Update(ds, tablename = "cd") {
                 conduct: ""
             }
             for (let k in data) data[k] = r[k];
-            //getModel().DataReaderQuery(sql, [data, r.stud_ref], (err, results) => {/*console.log(err,results)*/ })
+            //getModel().DataReaderQuery(sql, [data, r.stud_ref], (err, results) => {/**/ })
         }
     }
 }
 
 async function GenSummaryTbl(classno, term, calcflag = true, updateflag = false) {
-    let data = await GetMrkTblSet(classno, new TMarkCalC_Act(), true, true)
+    let data = await GetMrkTblSet(classno, new cm_core.TMarkCalC_Act(), true, true)
     if (term == 5) return View_cross_tbl_SecTerm(...data);
     return View_cross_tbl(...data);
 }
@@ -59,7 +59,7 @@ async function GenSummaryTbl(classno, term, calcflag = true, updateflag = false)
 async function GetMrkTblSet(classno, iCalc = null, calcflag = true, updateflag = false) {
     let [std_dt, crs_dt, ng_dict, ds] = JSON.parse(fs.readFileSync('./secert/data_.txt')); //;
     if (calcflag) {
-        MarkIterateCalc(ds, ng_dict, iCalc, classno)
+        cm_core.MarkIterateCalc(ds, ng_dict, iCalc, classno)
         if (updateflag) {
             mk_adpt_Update(ds, "mk");
             cd_adpt_Update(ds, "cd");
@@ -81,33 +81,32 @@ module.exports = {
 if (require.main === module) {
     //GenSummaryTbl('SC1E', 1);
     (async function(){
-        let [std_dt, crs_dt, ng_dict, ds]=await GetMrkTblSet('SC1E',new iMarkCalC_Act(),true,false)
-        let [cross_, std_dt_, crs]=calcmak_core.View_cross_tbl_Term(std_dt,crs_dt,ng_dict,ds,1)
-        console.table(cross_)
-        let res={} //TotalMarks TestExam NegaAacaCred
-        //let [cross_TestExam, _, __]=calcmak_core.View_cross_tbl_TermTestExam(std_dt,crs_dt,ng_dict,ds,1)
+        let [std_dt, crs_dt, ng_dict, ds]=await GetMrkTblSet('SC1E',new cm_core.iMarkCalC_Act(),true,false)
+        let res={} //TotalMarks TestExam NegaAcadCred
         {
-          let [cross_TestExam, _, __]=calcmak_core.View_Cross_Data(ds,"mk",std_dt,crs_dt,3,ng_dict,(mk)=>[mk.t2,mk.e2,mk.total2]);
-          res["TestExam"]=cross_TestExam
+          let [cross_, std, crs]=cm_core.View_Cross_Data(ds,"mk",std_dt,crs_dt,3,ng_dict,(mk)=>[mk.t2,mk.e2,mk.total2]);
+          res["TestExam"]=cross_
         }
         {
-          let [cross_TestExam, _, __]=calcmak_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減","mark2","ran2","voca_cult_avg","voca_prof_avg","conduct2","WrgMarks2","honor2"],
+           let [cross_, std, crs]=cm_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減","mark2","ran2","voca_cult_avg","voca_prof_avg","conduct2","WrgMarks2","honor2"],
             (mk)=>{
                return [mk.total2,0]
                 }
            );
-           res["TotalMarks"]=cross_TestExam
+           res["TotalMarks"]=cross_
         }
         {
-            
-          let [cross_TestExam, _, __]=calcmak_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減"],(mk)=>{
+          let [cross_, std, crs]=cm_core.View_Cross_TotalData(ds,"mk",std_dt,crs_dt,1,ng_dict,["扣減"],(mk)=>{
             let m_=Math.round((mk.total2 * 0.3 + mk.total1 * 0.3 - 36) * 6 / 4)
             return [m_,m_]
           });
-          res["NegaAacaCred"]=cross_TestExam
+          res["NegaAcadCred"]=cross_
         }
-        for(let k in res)
+        Object.keys(res).forEach(k => {
+            console.log(k)
             console.table(res[k])
+        });
+            
     })()
 
 }

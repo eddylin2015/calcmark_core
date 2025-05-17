@@ -310,6 +310,7 @@ function View_Cross_Data(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_su
     });
     return [cross_, std_dt, crs];
 }
+
 function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], cols_subitems = 1, ng_dict = {}, agg_field = ['扣減'], agg_action, cd_agg_action = null) {
     let crs = []
     let cols_len = crs_dt.length * cols_subitems;
@@ -355,94 +356,10 @@ function View_Cross_TotalData(ds, tablename = "mk", std_dt = [], crs_dt = [], co
 
 }
 
-function View_cross_tbl_SecTerm(std_dt, crs_dt, ng_dict, ds) {
-    let crs = []
-    let cols_len = crs_dt.length;
-    let crs_dict = {};
-    let ng_posi = {};
-    let ign_cnt = 0;
-    crs_dt.forEach((r, i) => {
-        if (r.rate == 100
-            || (i < cols_len && r.groupid !== crs_dt[i + 1].groupid)) {
-            crs_dict[r.course_d_id] = i - ign_cnt;
-            ng_posi[i - ign_cnt] = ng_dict[r.c_ng_id];
-            crs.push(r.rate == 100 ? r.courseName : r.c_field)
-        } else {
-            ign_cnt++;
-        }
-    })
-    let cross_ = []
-    std_dt.forEach(elm => { cross_.push(Array.from({ length: cols_len + 1 }, (_, i) => null)) })
-    std_dt.forEach((elm, i) => {
-        ds[i]["mk"].forEach((mk, mi) => {
-            if (mk.course_d_id in crs_dict) {
-                let m_ = Math.round((mk.total2 * 0.3 + mk.total1 * 0.3 - 36) * 6 / 4);
-                cross_[i][crs_dict[mk.course_d_id]] = m_;
-                if (m_ < 0) {
-                    let ng_ = ng_posi[crs_dict[mk.course_d_id]];
-                    cross_[i][cols_len] = cross_[i][cols_len] ? cross_[i][cols_len] + ng_ : ng_;
-                }
-            }
-        })
-    });
-    crs = [...crs, ...Array.from({ length: ign_cnt + 1 }, (_, i) => "")]
-    return [cross_, std_dt, crs];
-}
-
-function View_cross_tbl(std_dt, crs_dt, ng_dict, ds) {
-    let crs = []
-    let cols_len = crs_dt.length;
-    let crs_dict = {};
-    crs_dt.forEach((r, i) => { crs_dict[r.course_d_id] = i; crs.push(r.courseName) })
-    let cross_ = []
-    std_dt.forEach(elm => { cross_.push(Array.from({ length: cols_len }, (_, i) => null)) })
-    std_dt.forEach((elm, i) => {
-        ds[i]["mk"].forEach((mk, mi) => {
-            cross_[i][crs_dict[mk.course_d_id]] = mk.total2;
-        })
-    });
-    return [cross_, std_dt, crs];
-}
-
-function View_cross_tbl_Term(std_dt, crs_dt, ng_dict, ds, term = 0) {
-    let crs = []
-    let cols_len = crs_dt.length;
-    let crs_dict = {};
-    crs_dt.forEach((r, i) => { crs_dict[r.course_d_id] = i; crs.push(r.courseName) })
-    let cross_ = []
-    std_dt.forEach(elm => { cross_.push(Array.from({ length: cols_len }, (_, i) => null)) })
-    std_dt.forEach((elm, i) => {
-        ds[i]["mk"].forEach((mk, mi) => {
-            cross_[i][crs_dict[mk.course_d_id]] = term == 1 ? mk.total1 : term == 2 ? mk.total2 : term == 3 ? mk.total3 : mk.total
-        })
-    });
-    return [cross_, std_dt, crs];
-}
-
-function View_cross_tbl_TermTestExam(std_dt, crs_dt, ng_dict, ds, term = 0) {
-    let crs = []
-    let cols_len = crs_dt.length * 2;
-    let crs_dict = {};
-    crs_dt.forEach((r, i) => { crs_dict[r.course_d_id] = i; crs.push(r.courseName + "T"); crs.push(r.courseName + "E") })
-    let cross_ = []
-    std_dt.forEach(elm => { cross_.push(Array.from({ length: cols_len }, (_, i) => null)) })
-    std_dt.forEach((elm, i) => {
-        ds[i]["mk"].forEach((mk, mi) => {
-            cross_[i][crs_dict[mk.course_d_id] * 2] = term == 1 ? mk.total1 : term == 2 ? mk.total2 : term == 3 ? mk.total3 : mk.total
-            cross_[i][crs_dict[mk.course_d_id] * 2 + 1] = term == 1 ? mk.total1 : term == 2 ? mk.total2 : term == 3 ? mk.total3 : mk.total
-        })
-    });
-    return [cross_, std_dt, crs];
-}
-
 module.exports = {
     iMarkCalC_Act: iMarkCalC_Act,
     TMarkCalC_Act: TMarkCalC_Act,
     MarkIterateCalc: MarkIterateCalc,
     View_Cross_Data: View_Cross_Data,
     View_Cross_TotalData: View_Cross_TotalData,
-    View_cross_tbl: View_cross_tbl,
-    View_cross_tbl_SecTerm: View_cross_tbl_SecTerm,
-    View_cross_tbl_Term: View_cross_tbl_Term,
-    View_cross_tbl_TermTestExam: View_cross_tbl_TermTestExam,
 }

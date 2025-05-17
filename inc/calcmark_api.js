@@ -1,6 +1,6 @@
 const http = require('http');
 const querystring = require('querystring');
-const {iMarkCalC_Act,TMarkCalC_Act,MarkIterateCalc,View_cross_tbl_SecTerm,View_cross_tbl}=require("./calcmark_core")
+const {iMarkCalC_Act,TMarkCalC_Act,MarkIterateCalc,View_Cross_Data,View_Cross_TotalData}=require("./calcmark_core")
 const {HttpGet_pyapi,HttpGet_pyapi_cb,Uploadfile,Dowanloadfile}=require("./calcmark_pyapi")
 var fs = require('fs');
 var path = require('path');
@@ -126,8 +126,8 @@ module.exports = {
     Dowanloadfile: Dowanloadfile,
     GenSummaryTbl: GenSummaryTbl,
     GenSummaryTbl_cb:GenSummaryTbl_cb,
-    View_cross_tbl_SecTerm:View_cross_tbl_SecTerm,
-    View_cross_tbl:View_cross_tbl,
+    View_Cross_TotalData:View_Cross_TotalData,
+    View_Cross_Data:View_Cross_Data,
 
 }
 
